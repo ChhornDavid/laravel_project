@@ -1,0 +1,155 @@
+/* BASIC */
+
+html {
+    background-color: #e9eef2; /* Changed to a deeper blue */
+}
+
+body {
+    font-family: "Poppins", sans-serif;
+    height: 100vh;
+}
+
+#icon {
+    width: 100px; /* Adjust width as needed */
+    height: 100px; /* Adjust height as needed */
+    border-radius: 50%; /* Make it circular */
+    object-fit: cover; /* Ensure the image fits within the boundaries */
+}
+
+img {
+    width: 100px;
+    height: 100px;
+
+}
+
+a {
+    color: #82b3dd; /* Slightly darker for better contrast */
+    display: inline-block;
+    text-decoration: none;
+    font-weight: 500; /* Slightly bolder */
+}
+
+h2 {
+    text-align: center;
+    font-size: 18px; /* Increased for better readability */
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-block;
+    margin: 30px 10px 15px 10px; /* Adjusted margin */
+    color: #ffffff; /* More contrast on colored backgrounds */
+}
+
+/* STRUCTURE */
+
+.wrapper {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    min-height: 100%;
+    padding: 30px; /* Increased padding for breathing room */
+}
+
+#formContent {
+    border-radius: 12px; /* Modernized radius */
+    background: #ffffff;
+    padding: 30px;
+    width: 95%; /* Slightly wider for better mobile support */
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2); /* Softer shadow */
+    text-align: center;
+}
+
+#formFooter {
+    background-color: #e9eef2; /* Slightly different tone for subtle contrast */
+    border-top: 1px solid #d0d9e2;
+    padding: 20px;
+    text-align: center;
+    border-radius: 0 0 12px 12px;
+}
+
+/* FORM TYPOGRAPHY */
+
+input[type=button], input[type=submit], input[type=reset] {
+    background-color: #4a90e2; /* Consistent with the background */
+    border: none;
+    color: #ffffff;
+    padding: 15px 70px; /* Adjusted padding */
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 14px;
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3); /* Softer shadow */
+    border-radius: 6px; /* More subtle radius */
+    margin: 10px 15px 30px 15px; /* Adjusted margin */
+    transition: all 0.3s ease-in-out;
+}
+
+input[type=button]:hover, input[type=submit]:hover, input[type=reset]:hover {
+    background-color: #357abd; /* Slightly darker on hover */
+    cursor: pointer;
+}
+
+input[type=button]:active, input[type=submit]:active, input[type=reset]:active {
+    transform: scale(0.97); /* Slight reduction */
+}
+
+input[type=text] {
+    background-color: #f1f5f9; /* More subtle gray */
+    border: none;
+    color: #333333; /* Darker text for better contrast */
+    padding: 12px 30px; /* Balanced padding */
+    font-size: 15px;
+    margin: 8px;
+    width: 40%;
+    border: 2px solid #f1f5f9;
+    transition: all 0.3s ease-in-out;
+    border-radius: 6px;
+    text-align: center; /* Slightly rounder */
+}
+
+input[type=text]:focus {
+    background-color: #ffffff;
+    border-bottom: 2px solid #4a90e2;
+}
+
+/* ANIMATIONS */
+
+.fadeInDown {
+    animation-name: fadeInDown;
+    animation-duration: 0.8s; /* Faster for modern effect */
+    animation-fill-mode: both;
+}
+
+@keyframes fadeInDown {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, -50%, 0); /* Slightly adjusted */
+    }
+    100% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* Hover Effect for Links */
+.underlineHover:after {
+    display: block;
+    left: 0;
+    bottom: -8px; /* Slightly higher */
+    width: 0;
+    height: 2px;
+    background-color: #4a90e2;
+    content: "";
+    transition: width 0.25s; /* Smoother */
+}
+
+.underlineHover:hover:after {
+    width: 100%;
+}
+
+/* General focus */
+*:focus {
+    outline: none;
+}

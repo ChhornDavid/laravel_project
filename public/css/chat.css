@@ -1,0 +1,150 @@
+body {
+    background-color: #f0f2f5;
+    font-family: 'Arial', sans-serif;
+    font-size: 0.85rem; /* Smaller overall font size */
+}
+
+.container.content {
+    margin-top: 5px; /* Smaller margin at the top */
+    max-width: 500px;
+    margin: auto;
+}
+
+.card {
+    border: 20px;
+    border-radius: 20px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    border-radius: 6px 6px;
+    padding: 10px; /* Reduced padding */
+    text-align: center;
+    font-size: 0.9rem; /* Smaller header font */
+}
+
+.card-body {
+    background-color: white;
+    padding: 15px; /* Reduced padding */
+    height: 550px; /* Smaller height */
+    width: 500px;
+    display: flex; /* Use flexbox for the card body */
+    flex-direction: column; /* Stack the chat messages and input field vertically */
+    justify-content: space-between; /* Space between the chat and the input */
+}
+
+.chat-list {
+    list-style: none;
+    padding: 0;
+    overflow-y: auto; /* Enable scrolling for the chat list */
+    flex-grow: 1; /* Allow chat list to grow and take available space */
+}
+
+.chat-list li {
+    display: flex;
+    margin-bottom: 0px; /* Reduced spacing */
+}
+
+.chat-list .chat-img {
+    width: 40px; /* Smaller avatar */
+    height: 40px;
+}
+
+.chat-list .chat-img img {
+    width: 100%;
+    border-radius: 50%;
+}
+
+.chat-list .chat-body {
+    display: flex;
+    flex-direction: column;
+    max-width: 45%; /* Narrower chat bubbles */
+}
+
+.chat-list .chat-message {
+    padding: 5px; /* Reduced padding */
+    border-radius: 8px; /* Less rounded corners */
+    font-size: 0.85rem; /* Smaller text */
+}
+
+.chat-list .in .chat-body .chat-message {
+    background-color: #e2f0ff;
+    border-radius: 10px 10px 10px 0;
+}
+
+.chat-list .in {
+    justify-content: flex-start;
+}
+
+.chat-list .in .chat-img {
+    margin-right: 5px; /* Less space between image and message */
+}
+
+.chat-list .out .chat-body .chat-message {
+    background-color: #ffe5d9;
+    border-radius: 10px 10px 0 10px;
+    text-align: right;
+}
+
+.chat-list .out {
+    justify-content: flex-end;
+}
+
+.chat-list .out .chat-img {
+    margin-left: 5px; /* Less space between message and image */
+    order: 2; /* Display the avatar on the right */
+}
+
+/* Style for the chat input and button */
+.row {
+    display: flex; /* Use flexbox to align input and button */
+    align-items: center; /* Vertically center align the input and button */
+    margin-top: 10px; /* Add some space between the chat and the form */
+}
+
+.col-lg-9 {
+    flex-grow: 1; /* Allow the input field to take remaining space */
+    padding-right: 10px; /* Space between input and button */
+}
+
+input[type="text"] {
+    width: 100%; /* Make the input take up full width of the parent container */
+    padding: 10px; /* Add padding inside the input */
+    border: 1px solid #ccc; /* Light border around the input */
+    border-radius: 8px; /* Rounded corners for the input */
+    font-size: 0.85rem; /* Smaller font size */
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
+}
+
+button {
+    padding: 10px; /* Padding inside the button */
+    font-size: 0.85rem; /* Smaller font size for the button */
+    border: none; /* Remove default border */
+    border-radius: 8px; /* Rounded corners for the button */
+    background-color: #007bff; /* Primary blue background color */
+    color: white; /* White text color */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth transition on hover */
+}
+
+button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Ensure responsive design */
+@media (max-width: 767px) {
+    .row {
+        flex-direction: column; /* Stack the input and button vertically on small screens */
+    }
+
+    .col-lg-9, .col-lg-3 {
+        padding: 0; /* Remove padding for smaller screens */
+    }
+
+    input[type="text"], button {
+        width: 100%; /* Make both input and button take full width */
+    }
+}

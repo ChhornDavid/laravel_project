@@ -12,7 +12,7 @@ use App\Models\PendingOrder;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderCashController extends Controller
 {
@@ -23,6 +23,7 @@ class OrderCashController extends Controller
             'payment_type' => 'required|in:cash,credit_card,scan',
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_name' => 'required|exists:products,name',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.amount' => 'required|numeric',
             'items.*.size' => 'nullable|string',
@@ -32,8 +33,7 @@ class OrderCashController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Get authenticated user ID
-        $userId = auth()->id(); // Ensure the request has authentication
+        $userId = auth()->id();
 
         if (!$userId) {
             return response()->json(['error' => 'User not authenticated'], 401);
@@ -85,11 +85,13 @@ class OrderCashController extends Controller
         if (!$pendingOrder) {
             return response()->json(['message' => 'Pending order not found or already processed.'], 404);
         }
+        
+        $pendingOrder->status = 'declined';
+        $pendingOrder->save();
 
         return response()->json(['message' => 'Order declined.'], 200);
     }
 
-    // List all pending orders for admin
     public function listPendingOrders()
     {
         $pendingOrders = PendingOrder::where('status', 'pending')->get()->map(function ($order) {

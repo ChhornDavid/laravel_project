@@ -10,17 +10,17 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class OrderApprovedCash implements ShouldBroadcast
+class OrderSentToKitchen implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $order;
+    public $orderData;
     /**
      * Create a new event instance.
      */
-    public function __construct($order)
+    public function __construct($orderData)
     {
-        $this->order = $order;
+        $this->orderData = $orderData;
     }
 
     /**
@@ -30,11 +30,10 @@ class OrderApprovedCash implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel('order-status');
+        return new Channel('kitchen-orders');
     }
-
-    public function broadcastWith()
+    public function broadcastAs()
     {
-        return ['orders' => $this->order];
+        return 'order.sent';
     }
 }

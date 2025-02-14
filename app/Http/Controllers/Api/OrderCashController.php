@@ -6,7 +6,9 @@ use App\Events\OrderApproved;
 use App\Events\OrderApprovedCash;
 use App\Events\OrderDeclined;
 use App\Events\OrderCreated;
+use App\Events\OrderSentToKitchen;
 use App\Http\Controllers\Controller;
+use App\Models\KitchenOrder;
 use Illuminate\Http\Request;
 use App\Models\PendingOrder;
 use App\Models\Order;
@@ -46,8 +48,7 @@ class OrderCashController extends Controller
         $order->items = json_encode($request->items);
         $order->save();
 
-        //broadcast(new OrderApprovedCash($order))->toOthers();
-
+        //No Realtime event data
         return response()->json(['message' => 'Order created successfully', 'order' => $order], 201);
     }
 
@@ -70,13 +71,18 @@ class OrderCashController extends Controller
         foreach ($items as $item) {
             $order->items()->create($item);
         }
-        // Mark the pending order as approved
+
         $pendingOrder->update(['status' => 'approved']);
+        Log::info("Order Approved Cash", ['order' => $order]);
+        broadcast(new OrderApprovedCash(['order' => $order]))->toOthers();
 
-        // Broadcast the OrderApproved event with the updated order data
-        broadcast(new OrderApprovedCash($order))->toOthers();
-
-        return response()->json(['message' => 'Order approved successfully!', 'order' => $order], 200);
+        KitchenOrder::create([
+            'order_id' => $order->id,
+            'user_id' => $order->user_id,
+            'items' => $items,
+            'status' => 'pending',
+        ]);
+        return response()->json(['message' => 'Order approved and sent to kitchen!', 'order' => $order], 200);
     }
 
     public function declineOrder($id)
@@ -85,10 +91,12 @@ class OrderCashController extends Controller
         if (!$pendingOrder) {
             return response()->json(['message' => 'Pending order not found or already processed.'], 404);
         }
-        
+
         $pendingOrder->status = 'declined';
         $pendingOrder->save();
 
+        Log::info("Order Declined", ['orderId' => $id]);
+        broadcast(new OrderApprovedCash(['orderId' => $id]))->toOthers();
         return response()->json(['message' => 'Order declined.'], 200);
     }
 
@@ -98,8 +106,7 @@ class OrderCashController extends Controller
             $order->amount = (float)$order->amount;
             return $order;
         });
-        event(new OrderApprovedCash($pendingOrders));
-
+        //This isn't required at all. We dont' want to broadcast this specific function.
         return response()->json($pendingOrders);
     }
 

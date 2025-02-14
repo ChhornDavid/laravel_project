@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\KitchenOrderController;
 use App\Http\Controllers\Api\OrderCashController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\SpecialMenuController;
@@ -82,6 +83,11 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/payment/success', [StripeController::class, 'success'])->name('payment.success');
     Route::get('/payment/cancel', [StripeController::class, 'cancel'])->name('payment.cancel');
 
+    //Kitchen order
+    Route::get('/kitchen/orders', [KitchenOrderController::class, 'index']);
+    Route::post('/kitchen/orders', [KitchenOrderController::class, 'store']);
+    Route::put('/kitchen/orders/{id}/status', [KitchenOrderController::class, 'updateStatus']);
+
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
@@ -89,3 +95,4 @@ Route::middleware('jwt.auth')->group(function () {
 
 // User
 Route::get('/users', [UserController::class, 'index']);
+Route::post('/refresh', [AuthController::class, 'refresh']);

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->bigInteger('user_id')->unsigned();
-            $table->enum('payment_type', ['cash', 'credit_card', 'scan'])->nullable()->after('amount');
+            $table->enum('payment_type', ['cash', 'credit_card', 'scan'])->nullable();
             $table->decimal('amount');
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

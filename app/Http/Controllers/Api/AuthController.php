@@ -109,4 +109,31 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    public function refresh()
+    {
+        try {
+            $newToken = JWTAuth::refresh(JWTAuth::getToken());
+
+            $cookie = cookie(
+                'auth_token',   // Cookie name
+                $newToken,      // Token value
+                60,             // Expiry time (in minutes)
+                '/',            // Path
+                null,           // Domain (null for default)
+                true,           // Secure (true for HTTPS)
+                true            // HttpOnly
+            );
+
+            return response()->json([
+                'message' => 'Token refreshed successfully!',
+                'token' => $newToken,
+            ], 200)->withCookie($cookie);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to refresh token!',
+                'error' => $e->getMessage(),
+            ], 401);
+        }
+    }
 }

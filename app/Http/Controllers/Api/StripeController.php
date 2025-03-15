@@ -6,8 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Exception;
 use Stripe\Stripe;
-use Stripe\PaymentIntent;
+use Stripe\Webhook;
 use Stripe\Checkout\Session;
+use Stripe\PaymentIntent;
 use Illuminate\Support\Facades\Log;
 
 class StripeController extends Controller
@@ -52,6 +53,16 @@ class StripeController extends Controller
         }
     }
 
+    public function success()
+    {
+        return response()->json(['message' => 'Payment success'], 200);
+    }
+
+    public function cancel()
+    {
+        return response()->json(['message' => 'Payment failed'], 200);
+    }
+
     public function createPaymentLink(Request $request)
     {
         $stripeSecretKey = config('services.stripe.secret');
@@ -66,9 +77,6 @@ class StripeController extends Controller
                 'currency' => 'required|string',
             ]);
 
-            Log::info('Validated Data:', ['validatedData' => $validatedData]);
-
-
             $lineItems = [];
             foreach ($validatedData['items'] as $item) {
                 $lineItems[] = [
@@ -82,7 +90,7 @@ class StripeController extends Controller
                     'quantity' => $item['quantity']
                 ];
             }
-            Log::info('Line Items:', ['lineItems' => $lineItems]);
+
             // Create a Stripe Checkout Session
             $session = Session::create([
                 'payment_method_types' => ['card'],
@@ -90,40 +98,64 @@ class StripeController extends Controller
                 'mode' => 'payment',
                 'success_url' => route('payment.success'), // Use named route
                 'cancel_url' => route('payment.cancel'), // Use named route
+                'client_reference_id' => 'order_id', // Unique identifier for the order
             ]);
 
             return response()->json([
                 'payment_url' => $session->url,
+                'payment_id' => $session->id,  // Pass the payment ID
             ]);
         } catch (\Exception $e) {
-            Log::error("Error creating payment link", ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            Log::error("Error creating payment link", ['message' => $e->getMessage()]);
             return response()->json(['message' => 'Error generating payment link'], 500);
         }
     }
-    public function checkPaymentStatus(Request $request)
+
+    // Check Payment Status
+    public function checkPaymentStatus($paymentId)
     {
+        $stripeSecretKey = config('services.stripe.secret');
+        Stripe::setApiKey($stripeSecretKey);
+
         try {
-            Stripe::setApiKey(config('services.stripe.secret'));
+            $session = Session::retrieve($paymentId);
 
-            $sessionId = $request->session_id;
-            $session = Session::retrieve($sessionId);
-
-            return response()->json([
-                'status' => $session->payment_status,
-            ], 200);
+            if ($session->payment_status === 'paid') {
+                return response()->json(['paymentStatus' => 'success']);
+            } else {
+                return response()->json(['paymentStatus' => 'pending']);
+            }
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-            ], 500);
+            return response()->json(['message' => 'Unable to verify payment status'], 400);
         }
     }
-    public function success()
-    {
-        return response()->json(['message' => 'Payment success'], 200);
-    }
 
-    public function cancel()
+    // Handle Webhook from Stripe
+    public function handleWebhook(Request $request)
     {
-        return response()->json(['message' => 'Payment failed'], 200);
+        $payload = $request->getContent();
+        $sig_header = $request->header('Stripe-Signature');
+        $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
+
+        try {
+            $event = Webhook::constructEvent($payload, $sig_header, $endpoint_secret);
+
+            switch ($event->type) {
+                case 'checkout.session.completed':
+                    $session = $event->data->object;
+
+                    if ($session->payment_status === 'paid') {
+                        $orderId = $session->client_reference_id;
+                        // Handle successful payment, update order status
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            return response()->json(['status' => 'success']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error'], 400);
+        }
     }
 }

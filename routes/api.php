@@ -79,9 +79,11 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/admin/decline/{id}', [OrderCashController::class, 'declineOrder']);
 
     //Payment by Scan
-    // Route::post('/payment/create', [StripeController::class, 'createPaymentLink']);
-    // Route::get('/payment/success', [StripeController::class, 'success'])->name('payment.success');
-    // Route::get('/payment/cancel', [StripeController::class, 'cancel'])->name('payment.cancel');
+    Route::post('/payment/create', [StripeController::class, 'createPaymentLink']);
+    Route::get('/payment/status/{paymentId}', [StripeController::class, 'checkPaymentStatus']);
+    Route::post('/payment/webhook', [StripeController::class, 'handleWebhook']);
+    Route::get('/payment/success', [StripeController::class, 'success'])->name('payment.success');
+    Route::get('/payment/cancel', [StripeController::class, 'cancel'])->name('payment.cancel');
 
     //Kitchen order
     Route::get('/kitchen/orders', [KitchenOrderController::class, 'index']);

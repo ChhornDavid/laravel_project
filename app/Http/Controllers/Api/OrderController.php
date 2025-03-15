@@ -8,6 +8,7 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Events\CreditCardToKitchen;
 
 
 class OrderController extends Controller
@@ -78,13 +79,13 @@ class OrderController extends Controller
         }
 
         // Create a kitchen order
-        KitchenOrder::create([
+        $kichen = KitchenOrder::create([
             'order_id' => $order->id,
             'user_id' => $order->user_id,
             'items' => $request->items,
             'status' => 'pending',
         ]);
-
+        event(new CreditCardToKitchen($kichen));
         // Return the response
         return response()->json([
             'message' => 'Order created successfully',

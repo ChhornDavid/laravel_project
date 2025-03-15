@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Exception;
 use Stripe\Stripe;
+use Stripe\PaymentIntent;
 use Stripe\Checkout\Session;
 use Illuminate\Support\Facades\Log;
 
@@ -14,25 +15,39 @@ class StripeController extends Controller
     public function stripePost(Request $request)
     {
         try {
-            $stripeSecretKey = config('services.stripe.secret');
+            // Set your Stripe secret key
+            Stripe::setApiKey(config('services.stripe.secret'));
 
-            $stripe = new \Stripe\StripeClient($stripeSecretKey);
-
-            $testToken = 'tok_visa';
-            $response = $stripe->charges->create([
+            $paymentIntent = PaymentIntent::create([
                 'amount' => $request->amount * 100,
                 'currency' => 'usd',
-                'source' => $testToken,
+                'payment_method' => $request->paymentMethodId,
                 'description' => $request->description,
+                'confirmation_method' => 'manual',
+                'confirm' => true,
+                'return_url' => 'https://your-website.com/success',
             ]);
 
+            if ($paymentIntent->status === 'requires_action') {
+                return response()->json([
+                    'requires_action' => true,
+                    'payment_intent_client_secret' => $paymentIntent->client_secret,
+                ], 200);
+            }
+
+            if ($paymentIntent->status === 'succeeded') {
+                return response()->json([
+                    'status' => $paymentIntent->status,
+                    'charge_id' => $paymentIntent->id,
+                ], 201);
+            }
+
             return response()->json([
-                'status' => $response->status,
-                'charge_id' => $response->id,
-            ], 201);
-        } catch (Exception $ex) {
+                'error' => 'Payment failed. Status: ' . $paymentIntent->status,
+            ], 400);
+        } catch (\Exception $ex) {
             return response()->json([
-                'error' => $ex->getMessage()
+                'error' => $ex->getMessage(),
             ], 500);
         }
     }
@@ -83,6 +98,23 @@ class StripeController extends Controller
         } catch (\Exception $e) {
             Log::error("Error creating payment link", ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json(['message' => 'Error generating payment link'], 500);
+        }
+    }
+    public function checkPaymentStatus(Request $request)
+    {
+        try {
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            $sessionId = $request->session_id;
+            $session = Session::retrieve($sessionId);
+
+            return response()->json([
+                'status' => $session->payment_status,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
     public function success()

@@ -32,9 +32,4 @@ class OrderApprovedCash implements ShouldBroadcast
     {
         return new Channel('order-status');
     }
-
-    public function broadcastWith()
-    {
-        return ['orders' => $this->order];
-    }
 }

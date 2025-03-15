@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\KitchenOrder;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,14 +35,16 @@ class OrderController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
+
     public function store(Request $request)
     {
+        // Validate the request
         $validator = Validator::make($request->all(), [
             'amount' => 'required|numeric',
             'payment_type' => 'required|in:cash,credit_card,scan',
-            // Add validation for order items
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_name' => 'required|exists:products,name',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.amount' => 'required|numeric',
             'items.*.size' => 'nullable|string',
@@ -50,20 +53,45 @@ class OrderController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-        $order = new Order();
-        $order->user_id = 1;
-        $order->amount = $request->amount;
-        $order->payment_type = $request->payment_type;
 
-        $order->save();
-
-        // Create order items
-        foreach ($request->items as $item) {
-            $order->items()->create($item);
+        // Get the authenticated user
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
         }
 
-        return response()->json(['message' => 'Order created successfully', 'order' => $order->load('items')], 201);
+        // Create the order
+        $order = new Order();
+        $order->user_id = $user->id;
+        $order->amount = $request->amount;
+        $order->payment_type = $request->payment_type;
+        $order->save();
+
+        // Save order items
+        foreach ($request->items as $item) {
+            $order->items()->create([
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'amount' => $item['amount'],
+                'size' => $item['size'] ?? null,
+            ]);
+        }
+
+        // Create a kitchen order
+        KitchenOrder::create([
+            'order_id' => $order->id,
+            'user_id' => $order->user_id,
+            'items' => $request->items,
+            'status' => 'pending',
+        ]);
+
+        // Return the response
+        return response()->json([
+            'message' => 'Order created successfully',
+            'order' => $order->load('items'),
+        ], 201);
     }
+
     /**
      * Display the specified order.
      *

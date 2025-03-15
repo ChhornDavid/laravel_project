@@ -14,13 +14,13 @@ class OrderSentToKitchen implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $orderData;
+    public $order;
     /**
      * Create a new event instance.
      */
-    public function __construct($orderData)
+    public function __construct($order)
     {
-        $this->orderData = $orderData;
+        $this->order = $order;
     }
 
     /**
@@ -31,9 +31,5 @@ class OrderSentToKitchen implements ShouldBroadcast
     public function broadcastOn()
     {
         return new Channel('kitchen-orders');
-    }
-    public function broadcastAs()
-    {
-        return 'order.sent';
     }
 }

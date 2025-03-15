@@ -2,10 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Events\OrderApproved;
 use App\Events\OrderApprovedCash;
-use App\Events\OrderDeclined;
-use App\Events\OrderCreated;
 use App\Events\OrderSentToKitchen;
 use App\Http\Controllers\Controller;
 use App\Models\KitchenOrder;
@@ -48,6 +45,7 @@ class OrderCashController extends Controller
         $order->items = json_encode($request->items);
         $order->save();
 
+        event(new OrderApprovedCash($order));
         //No Realtime event data
         return response()->json(['message' => 'Order created successfully', 'order' => $order], 201);
     }
@@ -74,14 +72,16 @@ class OrderCashController extends Controller
 
         $pendingOrder->update(['status' => 'approved']);
         Log::info("Order Approved Cash", ['order' => $order]);
-        broadcast(new OrderApprovedCash(['order' => $order]))->toOthers();
 
-        KitchenOrder::create([
+        $kitchen = KitchenOrder::create([
             'order_id' => $order->id,
             'user_id' => $order->user_id,
             'items' => $items,
             'status' => 'pending',
         ]);
+
+        event(new OrderSentToKitchen( $kitchen));
+
         return response()->json(['message' => 'Order approved and sent to kitchen!', 'order' => $order], 200);
     }
 
@@ -106,7 +106,7 @@ class OrderCashController extends Controller
             $order->amount = (float)$order->amount;
             return $order;
         });
-        //This isn't required at all. We dont' want to broadcast this specific function.
+
         return response()->json($pendingOrders);
     }
 

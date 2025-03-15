@@ -34,5 +34,12 @@ return [
         'secret' => env('STRIPE_SECRET'),
         'key' => env('STRIPE_SECRET'),
     ],
+    'aba_payway' => [
+        'merchant_id' => env('ABA_PAYWAY_MERCHANT_ID'),
+        'api_key' => env('ABA_PAYWAY_API_KEY'),
+        'url' => env('ABA_PAYWAY_URL'),
+        'return_url' => env('ABA_PAYWAY_RETURN_URL'),
+        'cancel_url' => env('ABA_PAYWAY_CANCEL_URL'),
+    ],
 
 ];

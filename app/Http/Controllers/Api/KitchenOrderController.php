@@ -8,11 +8,13 @@ use Illuminate\Http\Request;
 
 class KitchenOrderController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         return response()->json(KitchenOrder::all());
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $request->validate([
             'order_id' => 'required|exists:orders,id',
             'user_id' => 'required|exists:users,id',
@@ -28,14 +30,19 @@ class KitchenOrderController extends Controller
         return response()->json($order, 201);
     }
 
-    public function updateStatus(Request $request, $id) {
+    public function updateStatus(Request $request, $id)
+    {
         $request->validate([
-            'status' => 'required|in:New Order,On Cook,Complete',
+            'status' => 'required|in:pending,preparing,completed',
         ]);
 
-        $order = KitchenOrder::findOrFail($id);
-        $order->update(['status' => $request->status]);
+        try {
+            $order = KitchenOrder::findOrFail($id);
+            $order->update(['status' => $request->status]);
 
-        return response()->json(['message' => 'Status updated successfully', 'order' => $order]);
+            return response()->json(['message' => 'Status updated successfully', 'order' => $order], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error updating status', 'error' => $e->getMessage()], 500);
+        }
     }
 }

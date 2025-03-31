@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\EventForRobot;
 use App\Http\Controllers\Controller;
 use App\Models\KitchenOrder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class KitchenOrderController extends Controller
 {
@@ -37,12 +39,45 @@ class KitchenOrderController extends Controller
         ]);
 
         try {
-            $order = KitchenOrder::findOrFail($id);
+            $order = KitchenOrder::find($id);
+            if (!$order) {
+                return response()->json(['message' => 'Order not found'], 404);
+            }
+
             $order->update(['status' => $request->status]);
+
+            // Send real-time event
+            event(new EventForRobot($order));
+
+            // Handle robot actions
+            if ($request->status === 'preparing') {
+                $this->callRobotToKitchen($order);
+            } elseif ($request->status === 'completed') {
+                $this->sendRobotToTable($order);
+            }
 
             return response()->json(['message' => 'Status updated successfully', 'order' => $order], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error updating status', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    private function callRobotToKitchen($order)
+    {
+        // Implement your logic to call the robot (API request, MQTT, etc.)
+        // Example: Sending request to the robot control system
+        Http::post('http://127.0.0.1/call', [
+            'order_id' => $order->id,
+            'action' => 'pickup'
+        ]);
+    }
+
+    private function sendRobotToTable($order)
+    {
+        // Implement your logic to send the robot to the table
+        Http::post('http://127.0.0.1/deliver', [
+            'order_id' => $order->id,
+            'table_number' => $order->table_number
+        ]);
     }
 }

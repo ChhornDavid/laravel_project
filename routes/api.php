@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\CurrentStatusController;
 use App\Http\Controllers\Api\KitchenOrderController;
 use App\Http\Controllers\Api\OrderCashController;
 use App\Http\Controllers\Api\OrderController;
@@ -93,11 +94,16 @@ Route::middleware('jwt.auth')->group(function () {
     //ABA Payment
     Route::post('/payment/checkout', [PaymentController::class, 'checkout']);
 
+    
 
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 });
+
+//Currentstatus
+Route::get('/status',[CurrentStatusController::class, 'index']);
+Route::post('/status', [CurrentStatusController::class, 'store']);
 
 // User
 Route::get('/users', [UserController::class, 'index']);

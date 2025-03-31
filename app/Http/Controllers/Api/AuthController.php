@@ -68,7 +68,7 @@ class AuthController extends Controller
         }
 
         $cookie = cookie(
-            'auth_token',   // Cookie name
+            'refresh_token',   // Cookie name
             $token,         // Token value
             60,             // Expiry time (in minutes)
             '/',            // Path
@@ -116,7 +116,7 @@ class AuthController extends Controller
             $newToken = JWTAuth::refresh(JWTAuth::getToken());
 
             $cookie = cookie(
-                'auth_token',   // Cookie name
+                'refresh_token',  // Cookie name
                 $newToken,      // Token value
                 60,             // Expiry time (in minutes)
                 '/',            // Path

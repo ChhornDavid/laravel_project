@@ -46,6 +46,7 @@ class OrderCashController extends Controller
         $order->save();
 
         event(new OrderApprovedCash($order));
+
         //No Realtime event data
         return response()->json(['message' => 'Order created successfully', 'order' => $order], 201);
     }

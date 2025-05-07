@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Events\OrderApprovedCash;
 use App\Events\OrderSentToKitchen;
+use App\Events\StoreOrder;
 use App\Http\Controllers\Controller;
 use App\Models\KitchenOrder;
 use Illuminate\Http\Request;
@@ -43,7 +44,9 @@ class OrderCashController extends Controller
         $order->amount = $request->amount;
         $order->payment_type = $request->payment_type;
         $order->items = json_encode($request->items);
+        // $order->status = 'paid';
         $order->save();
+
 
         event(new OrderApprovedCash($order));
 
@@ -81,7 +84,11 @@ class OrderCashController extends Controller
             'status' => 'pending',
         ]);
 
-        event(new OrderSentToKitchen( $kitchen));
+        event(new OrderSentToKitchen($kitchen));
+
+        $order->status = 'paid';
+        $order->save();
+        event(new StoreOrder($order));
 
         return response()->json(['message' => 'Order approved and sent to kitchen!', 'order' => $order], 200);
     }

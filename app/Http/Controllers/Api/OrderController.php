@@ -30,6 +30,12 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
+    public function LastOrder()
+    {
+        $lastOrderId = Order::orderBy('id', 'desc')->value('id');
+        return response()->json(['id' => $lastOrderId]);
+    }
+
     /**
      * Store a new order.
      *
@@ -85,7 +91,9 @@ class OrderController extends Controller
             'items' => $request->items,
             'status' => 'pending',
         ]);
+
         event(new CreditCardToKitchen($kichen));
+
         // Return the response
         return response()->json([
             'message' => 'Order created successfully',

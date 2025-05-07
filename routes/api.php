@@ -69,6 +69,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::put('/orders/{id}', [OrderController::class, 'update']);
     Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
+    Route::get('/getitem', [OrderController::class, 'LastOrder']);
+    
 
     //Payment by credit card
     Route::post('/stripe', [StripeController::class, 'stripePost']);
@@ -102,9 +104,10 @@ Route::middleware('jwt.auth')->group(function () {
 });
 
 //Currentstatus
-Route::get('/status',[CurrentStatusController::class, 'index']);
-Route::post('/status', [CurrentStatusController::class, 'store']);
+// Route::get('/status',[CurrentStatusController::class, 'index']);
+// Route::post('/status', [CurrentStatusController::class, 'store']);
 
 // User
 Route::get('/users', [UserController::class, 'index']);
 Route::post('/refresh', [AuthController::class, 'refresh']);
+

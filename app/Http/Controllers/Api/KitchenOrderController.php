@@ -64,8 +64,6 @@ class KitchenOrderController extends Controller
 
     private function callRobotToKitchen($order)
     {
-        // Implement your logic to call the robot (API request, MQTT, etc.)
-        // Example: Sending request to the robot control system
         Http::post('http://127.0.0.1/call', [
             'order_id' => $order->id,
             'action' => 'pickup'
@@ -74,10 +72,10 @@ class KitchenOrderController extends Controller
 
     private function sendRobotToTable($order)
     {
-        // Implement your logic to send the robot to the table
         Http::post('http://127.0.0.1/deliver', [
             'order_id' => $order->id,
-            'table_number' => $order->table_number
+            'table_number' => $order->table_number,
+            'action' => 'delivery'
         ]);
     }
 }

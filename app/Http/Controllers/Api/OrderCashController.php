@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\OrderApprovedCash;
+use App\Events\OrderCreated;
 use App\Events\OrderSentToKitchen;
 use App\Events\StoreOrder;
 use App\Http\Controllers\Controller;
@@ -27,6 +28,8 @@ class OrderCashController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.amount' => 'required|numeric',
             'items.*.size' => 'nullable|string',
+            'session_key' => 'required|string|max:255',
+            'group_key' => 'required|string|max:255'
         ]);
 
         if ($validator->fails()) {
@@ -39,14 +42,26 @@ class OrderCashController extends Controller
             return response()->json(['error' => 'User not authenticated'], 401);
         }
 
+        // Check if another session is already handling payment
+        $existingOrder = PendingOrder::where('user_id', $userId)
+            ->where('group_key', '!=', $request->group_key)
+            ->where('status', 'paid')
+            ->first();
+
+        if ($existingOrder) {
+            return response()->json([
+                'error' => 'Another session is already handling the payment. Only one session per user can submit payment.'
+            ], 403);
+        }
+
         $order = new PendingOrder();
         $order->user_id = $userId;
+        $order->session_key = $request->session_key;
+        $order->group_key = $request->input('group_key');
         $order->amount = $request->amount;
         $order->payment_type = $request->payment_type;
         $order->items = json_encode($request->items);
-        // $order->status = 'paid';
         $order->save();
-
 
         event(new OrderApprovedCash($order));
 

@@ -9,10 +9,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Events\CreditCardToKitchen;
-
+use App\Events\OrderCreated;
 
 class OrderController extends Controller
 {
+    public function addItems(Request $request)
+    {
+        $items = $request->input('items');
+        $userId = $request->input('user_id');
+
+        event(new OrderCreated($userId, $items));
+
+        return response()->json([
+            'message' => 'Broadcasted',
+            'items' => $items
+        ]);
+    }
     /**
      * Display a listing of the orders.
      *

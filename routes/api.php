@@ -70,6 +70,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::put('/orders/{id}', [OrderController::class, 'update']);
     Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
     Route::get('/getitem', [OrderController::class, 'LastOrder']);
+    Route::post('order/add-items', [OrderController::class, 'addItems']);
     
 
     //Payment by credit card

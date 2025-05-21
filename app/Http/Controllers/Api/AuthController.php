@@ -31,7 +31,7 @@ class AuthController extends Controller
         $token = JWTAuth::fromUser($user);
 
         $cookie = cookie(
-            'auth_token',   // Cookie name
+            'refresh_token',   // Cookie name
             $token,         // Token value
             60,             // Expiry time (in minutes)
             '/',            // Path
@@ -70,11 +70,13 @@ class AuthController extends Controller
         $cookie = cookie(
             'refresh_token',   // Cookie name
             $token,         // Token value
-            60,             // Expiry time (in minutes)
+            60 * 24 * 7,             // Expiry time (in minutes)
             '/',            // Path
             null,           // Domain (null for default)
             true,           // Secure (true for HTTPS)
-            true
+            true,
+            false,
+            'None'
         );
 
         return response()->json([
@@ -110,30 +112,25 @@ class AuthController extends Controller
         }
     }
 
-    public function refresh()
+    public function refresh(Request $request)
     {
         try {
-            $newToken = JWTAuth::refresh(JWTAuth::getToken());
+            // Get the token from the cookie
+            $token = $request->cookie('refresh_token');
 
-            $cookie = cookie(
-                'refresh_token',  // Cookie name
-                $newToken,      // Token value
-                60,             // Expiry time (in minutes)
-                '/',            // Path
-                null,           // Domain (null for default)
-                true,           // Secure (true for HTTPS)
-                true            // HttpOnly
-            );
+            if (!$token) {
+                return response()->json(['message' => 'No refresh token found'], 401);
+            }
+
+            // Set the token manually so JWTAuth can refresh it
+            JWTAuth::setToken($token);
+            $newToken = JWTAuth::refresh();
 
             return response()->json([
-                'message' => 'Token refreshed successfully!',
                 'token' => $newToken,
-            ], 200)->withCookie($cookie);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to refresh token!',
-                'error' => $e->getMessage(),
-            ], 401);
+            ]);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json(['message' => 'Invalid or expired refresh token'], 401);
         }
     }
 }

@@ -16,6 +16,7 @@ class OrderCreated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
     public $userId;
     public $items;
+    //public $sessionId;
     /**
      * Create a new event instance.
      */
@@ -23,6 +24,7 @@ class OrderCreated implements ShouldBroadcast
     {
         $this->userId = $userId;
         $this->items = $items;
+        //$this->sessionId = $sessionId;
     }
 
     /**

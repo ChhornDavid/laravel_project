@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Facades\JWTFactory;
 
 
 class AuthController extends Controller
@@ -54,38 +55,44 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (! $token = JWTAuth::attempt($credentials)) {
+        // Attempt login and get access token
+        if (! $accessToken = JWTAuth::attempt($credentials)) {
             return response()->json([
                 'message' => 'Invalid email or password',
             ], 401);
         }
+
         $user = Auth::user();
+
+        // Update user status if needed
         if ($user instanceof User) {
             $user->update(['is_online' => true]);
-
-            // Broadcast the online status update
             event(new UserStatusUpdated($user));
         }
 
+        // ✅ Create a refresh token with custom claim
+        $refreshToken = JWTAuth::customClaims(['type' => 'refresh'])->fromUser($user);
+
+        // ✅ Set refresh token in HttpOnly cookie
         $cookie = cookie(
-            'refresh_token',   // Cookie name
-            $token,         // Token value
-            60 * 24 * 7,             // Expiry time (in minutes)
-            '/',            // Path
-            null,           // Domain (null for default)
-            true,           // Secure (true for HTTPS)
-            true,
+            'refresh_token',
+            $refreshToken,
+            60 * 24 * 7, // 7 days in minutes
+            '/',
+            null,
+            true, // Secure (set to false for local HTTP testing)
+            true, // HttpOnly
             false,
-            'None'
+            'None' // SameSite
         );
 
         return response()->json([
             'message' => 'Login successful!',
             'id' => $user->id,
             'name' => $user->name,
-            'token' => $token,
+            'token' => $accessToken,
             'role' => $user->type,
-        ], 200)->withCookie($cookie);
+        ])->withCookie($cookie);
     }
 
     public function logout(Request $request)
@@ -112,25 +119,16 @@ class AuthController extends Controller
         }
     }
 
-    public function refresh(Request $request)
+    public function refresh()
     {
         try {
-            // Get the token from the cookie
-            $token = $request->cookie('refresh_token');
-
-            if (!$token) {
-                return response()->json(['message' => 'No refresh token found'], 401);
-            }
-
-            // Set the token manually so JWTAuth can refresh it
-            JWTAuth::setToken($token);
-            $newToken = JWTAuth::refresh();
+            $newToken = JWTAuth::parseToken()->refresh();
 
             return response()->json([
-                'token' => $newToken,
+                'token' => $newToken
             ]);
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-            return response()->json(['message' => 'Invalid or expired refresh token'], 401);
+            return response()->json(['error' => 'Invalid token'], 401);
         }
     }
 }

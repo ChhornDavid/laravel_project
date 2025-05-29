@@ -17,11 +17,14 @@ class OrderController extends Controller
     {
         $items = $request->input('items');
         $userId = $request->input('user_id');
+        $sessionId = $request->input('session_id');
 
-        event(new OrderCreated($userId, $items));
+        event(new OrderCreated($userId,$items));
 
         return response()->json([
             'message' => 'Broadcasted',
+            'userid' => $userId,
+            'sessionId' => $sessionId,
             'items' => $items
         ]);
     }

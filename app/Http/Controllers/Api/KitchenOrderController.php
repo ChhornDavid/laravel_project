@@ -35,7 +35,7 @@ class KitchenOrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:pending,preparing,completed',
+            'status' => 'required|in:pending,accepted,preparing,completed',
         ]);
 
         try {

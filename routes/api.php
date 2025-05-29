@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\SpecialMenuController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\StripeController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\TranslationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -97,7 +98,8 @@ Route::middleware('jwt.auth')->group(function () {
     //ABA Payment
     Route::post('/payment/checkout', [PaymentController::class, 'checkout']);
 
-    
+    //translate
+    Route::post('/switch-language',[TranslationController::class, 'translate']);
 
     Route::get('/user', function (Request $request) {
         return $request->user();

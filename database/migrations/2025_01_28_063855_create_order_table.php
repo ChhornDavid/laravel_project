@@ -16,8 +16,9 @@ return new class extends Migration
             $table->bigInteger('user_id')->unsigned();
             $table->enum('payment_type', ['cash', 'credit_card', 'scan'])->nullable();
             $table->decimal('amount');
-            $table->timestamps();
+            $table->enum('status', ['pending', 'paid'])->default('pending')->change();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->timestamps();
         });
 
         Schema::create('order_items', function (Blueprint $table) {

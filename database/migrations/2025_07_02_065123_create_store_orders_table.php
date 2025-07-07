@@ -11,10 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('current_status', function (Blueprint $table) {
+        Schema::create('store_orders', function (Blueprint $table) {
             $table->id();
-            $table->string('status');
+            $table->unsignedBigInteger('user_id');
+            $table->json('items');
+            $table->boolean('status')->default(false); 
+            $table->string('group_key')->nullable()->index();
             $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
@@ -23,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('current_status');
+        Schema::dropIfExists('store_orders');
     }
 };

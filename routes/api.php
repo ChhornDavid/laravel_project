@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\CurrentStatusController;
 use App\Http\Controllers\Api\KitchenOrderController;
 use App\Http\Controllers\Api\OrderCashController;
 use App\Http\Controllers\Api\OrderController;
@@ -58,11 +57,11 @@ Route::middleware('jwt.auth')->group(function () {
     Route::delete('/deletespecial-menus/{special_menu}', [SpecialMenuController::class, 'destroy']);
 
     //product
-    Route::get('/products', [ProductController::class, 'index']);         // Fetch all products
-    Route::post('/addproducts', [ProductController::class, 'store']);        // Create a product
-    Route::get('showproductds/{products}', [ProductController::class, 'show']);      // Get a single product
-    Route::put('updateproducts/{products}', [ProductController::class, 'update']);    // Update a product
-    Route::delete('deleteproduct/{products}', [ProductController::class, 'destroy']); // Delete a product
+    Route::get('/products', [ProductController::class, 'index']);
+    Route::post('/addproducts', [ProductController::class, 'store']);
+    Route::get('showproductds/{products}', [ProductController::class, 'show']);
+    Route::put('updateproducts/{products}', [ProductController::class, 'update']);
+    Route::delete('deleteproduct/{products}', [ProductController::class, 'destroy']);
 
     //Order
     Route::get('/orders', [OrderController::class, 'index']);
@@ -71,8 +70,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::put('/orders/{id}', [OrderController::class, 'update']);
     Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
     Route::get('/getitem', [OrderController::class, 'LastOrder']);
-    Route::post('order/add-items', [OrderController::class, 'addItems']);
-    
+    Route::post('/order/add-items', [OrderController::class, 'addItems']);
+    Route::get('/order/draft/{userId}', [OrderController::class, 'getDraftOrder']);
 
     //Payment by credit card
     Route::post('/stripe', [StripeController::class, 'stripePost']);
@@ -99,7 +98,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/payment/checkout', [PaymentController::class, 'checkout']);
 
     //translate
-    Route::post('/switch-language',[TranslationController::class, 'translate']);
+    Route::post('/switch-language', [TranslationController::class, 'translate']);
 
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -112,5 +111,4 @@ Route::middleware('jwt.auth')->group(function () {
 
 // User
 Route::get('/users', [UserController::class, 'index']);
-Route::post('/refresh', [AuthController::class, 'refresh']);
-
+Route::get('/refresh', [AuthController::class, 'refresh']);

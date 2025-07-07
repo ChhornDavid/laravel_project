@@ -16,15 +16,17 @@ class OrderCreated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
     public $userId;
     public $items;
-    //public $sessionId;
+    public $groupKey;
+    public $socketId;
     /**
      * Create a new event instance.
      */
-    public function __construct($userId, $items)
+    public function __construct($userId, $items, $groupKey, $socketId = null)
     {
         $this->userId = $userId;
         $this->items = $items;
-        //$this->sessionId = $sessionId;
+        $this->groupKey = $groupKey;
+         $this->socketId = $socketId;
     }
 
     /**
@@ -35,5 +37,15 @@ class OrderCreated implements ShouldBroadcast
     public function broadcastOn()
     {
         return new Channel("ordersItem");
+    }
+
+    public function broadcastWith()
+    {
+        return [
+            'userId' => $this->userId,
+            'groupKey' => $this->groupKey,
+            'items' => $this->items,
+            'socketId' => $this->socketId
+        ];
     }
 }

@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('enum_orders', function (Blueprint $table) {
-            //
+        Schema::table('store_orders', function (Blueprint $table) {
+            $table->string('group_key')->after('status')->nullable()->index();
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('enum_orders', function (Blueprint $table) {
-            //
+        Schema::table('store_orders', function (Blueprint $table) {
+            $table->dropColumn('group_key');
         });
     }
 };

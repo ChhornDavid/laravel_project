@@ -10,24 +10,65 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Events\CreditCardToKitchen;
 use App\Events\OrderCreated;
+use App\Models\StoreOrders;
 
 class OrderController extends Controller
 {
-    public function addItems(Request $request)
+    public function getDraftOrder(Request $request, $userId)
     {
-        $items = $request->input('items');
-        $userId = $request->input('user_id');
-        $sessionId = $request->input('session_id');
+        $order = StoreOrders::where('user_id', $userId)
+            ->where('status', false)
+            ->latest()
+            ->first();
 
-        event(new OrderCreated($userId,$items));
+        if ($order) {
+            return response()->json([
+                'message' => 'Draft order found',
+                'items' => $order->items,
+            ]);
+        }
 
         return response()->json([
-            'message' => 'Broadcasted',
-            'userid' => $userId,
-            'sessionId' => $sessionId,
-            'items' => $items
+            'message' => 'No draft order',
+            'items' => []
         ]);
     }
+
+    public function addItems(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'items' => 'required|array|min:1',
+            'group_key' => 'required'
+        ]);
+
+        $userId = $validated['user_id'];
+        $items = $validated['items'];
+        $groupKey = $validated['group_key'];
+
+        $order = StoreOrders::where('user_id', $userId)
+            ->where('status', false)
+            ->first();
+
+        if ($order) {
+            $order->update(['items' => $items]);
+        } else {
+            $order = StoreOrders::create([
+                'user_id' => $userId,
+                'items' => $items,
+                'group_key' => $groupKey,
+                'status' => false
+            ]);
+        }
+
+        broadcast(new OrderCreated($userId, $items,$groupKey))->toOthers();
+
+        return response()->json([
+            'message' => 'Order saved successfully',
+            'order' => $order
+        ]);
+    }
+
     /**
      * Display a listing of the orders.
      *

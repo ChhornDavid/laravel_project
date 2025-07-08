@@ -15,12 +15,14 @@ class OrderApprovedCash implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $order;
+    public $userId;
     /**
      * Create a new event instance.
      */
-    public function __construct($order)
+    public function __construct($order, $userId)
     {
         $this->order = $order;
+        $this->userId = $userId;
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Events\OrderApprovedCash;
 use App\Events\OrderCreated;
 use App\Events\OrderSentToKitchen;
+use App\Events\PaidOrder;
 use App\Events\StoreOrder;
 use App\Http\Controllers\Controller;
 use App\Models\KitchenOrder;
@@ -28,7 +29,7 @@ class OrderCashController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.amount' => 'required|numeric',
             'items.*.size' => 'nullable|string',
-            'session_key' => 'required|string|max:255',
+            'paid' => 'required|string|max:255',
             'group_key' => 'required|string|max:255'
         ]);
 
@@ -56,14 +57,15 @@ class OrderCashController extends Controller
 
         $order = new PendingOrder();
         $order->user_id = $userId;
-        $order->session_key = $request->session_key;
+        $order->paid = $request->paid;
         $order->group_key = $request->input('group_key');
         $order->amount = $request->amount;
         $order->payment_type = $request->payment_type;
         $order->items = json_encode($request->items);
         $order->save();
 
-        event(new OrderApprovedCash($order));
+        event(new OrderApprovedCash($order, $order->user_id));
+        event(new PaidOrder($order->user_id, $order->paid));
 
         //No Realtime event data
         return response()->json(['message' => 'Order created successfully', 'order' => $order], 201);
@@ -99,7 +101,7 @@ class OrderCashController extends Controller
             'status' => 'pending',
         ]);
 
-        event(new OrderSentToKitchen($kitchen));
+        event(new OrderSentToKitchen($kitchen, $order->user_id));
 
         $order->status = 'paid';
         $order->save();
@@ -119,7 +121,7 @@ class OrderCashController extends Controller
         $pendingOrder->save();
 
         Log::info("Order Declined", ['orderId' => $id]);
-        broadcast(new OrderApprovedCash(['orderId' => $id]))->toOthers();
+        broadcast(new OrderApprovedCash(['orderId' => $id],[]))->toOthers();
         return response()->json(['message' => 'Order declined.'], 200);
     }
 

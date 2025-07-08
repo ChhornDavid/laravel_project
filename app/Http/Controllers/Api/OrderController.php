@@ -38,7 +38,7 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'items' => 'required|array|min:1',
+            'items' => 'required|array',
             'group_key' => 'required'
         ]);
 
@@ -61,7 +61,7 @@ class OrderController extends Controller
             ]);
         }
 
-        broadcast(new OrderCreated($userId, $items,$groupKey))->toOthers();
+        broadcast(new OrderCreated($userId, $items, $groupKey))->toOthers();
 
         return response()->json([
             'message' => 'Order saved successfully',
@@ -148,7 +148,7 @@ class OrderController extends Controller
             'status' => 'pending',
         ]);
 
-        event(new CreditCardToKitchen($kichen));
+        event(new CreditCardToKitchen($kichen, $order->user_id));
 
         // Return the response
         return response()->json([

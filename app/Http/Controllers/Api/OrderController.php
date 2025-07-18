@@ -43,7 +43,7 @@ class OrderController extends Controller
         ]);
 
         $userId = $validated['user_id'];
-        $items = $validated['items'];
+        $items = $validated['items'] ?? [];
         $groupKey = $validated['group_key'];
 
         $order = StoreOrders::where('user_id', $userId)
@@ -55,7 +55,7 @@ class OrderController extends Controller
         } else {
             $order = StoreOrders::create([
                 'user_id' => $userId,
-                'items' => $items,
+                'items' => $items ?? [],
                 'group_key' => $groupKey,
                 'status' => false
             ]);

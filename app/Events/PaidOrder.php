@@ -32,6 +32,6 @@ class PaidOrder implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel("order-status.{$this->userId}");
+        return new Channel("order-status");
     }
 }

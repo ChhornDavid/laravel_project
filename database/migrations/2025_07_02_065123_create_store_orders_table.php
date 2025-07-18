@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('store_orders', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->json('items');
+            $table->json('items')->nullable();
             $table->boolean('status')->default(false); 
             $table->string('group_key')->nullable()->index();
             $table->timestamps();

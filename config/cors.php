@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://127.0.0.1:5173', 'http://localhost:5173', 'http://localhost:8080', 'https://vuejs-project-eight.vercel.app'],
+    'allowed_origins' => ['http://127.0.0.1:5173', 'http://localhost:5173', 'http://localhost:8080', 'http://localhost:8081'],
 
     'allowed_origins_patterns' => [],
 

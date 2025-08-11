@@ -1,33 +1,58 @@
-FROM php:8.2-apache
+# Base image
+FROM php:8.2-fpm
 
-WORKDIR /var/www/html
+# Set working directory
+WORKDIR /var/www
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
+    git \
+    curl \
     libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip unzip git curl \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql mysqli
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    supervisor \
+    libzip-dev
 
-RUN a2enmod rewrite
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip sockets
 
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
-    /etc/apache2/sites-available/000-default.conf
+# Install Redis extension
+RUN pecl install redis && docker-php-ext-enable redis
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Install Node.js
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -y nodejs
 
-COPY . .
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-RUN composer install --no-dev --optimize-autoloader
+# Add user for laravel application
+RUN groupadd -g 1000 www
+RUN useradd -u 1000 -ms /bin/bash -g www www
 
-RUN chown -R www-data:www-data storage bootstrap/cache
-RUN chmod -R 775 storage bootstrap/cache
+# Copy existing application directory contents
+COPY . /var/www
 
-RUN php artisan config:cache && php artisan route:cache && php artisan view:cache
+# Copy supervisor configuration for websockets
+COPY docker-compose/supervisor/websockets.conf /etc/supervisor/conf.d/websockets.conf
 
-EXPOSE 80
+# Copy custom php.ini
+COPY docker-compose/php/php.ini /usr/local/etc/php/conf.d/php.ini
 
-CMD ["apache2-foreground"]
+# Set correct permissions for Laravel
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 755 /var/www
+
+
+# Change current user to www
+USER www
+
+# Expose port 9000 and start php-fpm server
+EXPOSE 9000
+CMD ["php-fpm"]

@@ -89,7 +89,7 @@ class OrderController extends Controller
     public function LastOrder()
     {
         $lastOrderId = Order::orderBy('id', 'desc')->value('id');
-        return response()->json(['id' => $lastOrderId]);
+        return response()->json(['message' => 'Order created successfully', 'id' => $lastOrderId], 200);
     }
 
     /**

@@ -25,12 +25,11 @@ class OrderCashController extends Controller
             'payment_type' => 'required|in:cash,credit_card,scan',
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.product_name' => 'required|exists:products,name',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.amount' => 'required|numeric',
             'items.*.size' => 'nullable|string',
             'paid' => 'required|string|max:255',
-            'group_key' => 'required|string|max:255'
+            'group_key' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -121,7 +120,7 @@ class OrderCashController extends Controller
         $pendingOrder->save();
 
         Log::info("Order Declined", ['orderId' => $id]);
-        broadcast(new OrderApprovedCash(['orderId' => $id],[]))->toOthers();
+        broadcast(new OrderApprovedCash(['orderId' => $id], []))->toOthers();
         return response()->json(['message' => 'Order declined.'], 200);
     }
 

@@ -39,25 +39,30 @@ class OrderController extends Controller
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'items' => 'required|array',
-            'group_key' => 'required'
+            'group_key' => 'required',
+            'status' => 'nullable|boolean'
         ]);
 
         $userId = $validated['user_id'];
         $items = $validated['items'] ?? [];
         $groupKey = $validated['group_key'];
+        $status = $validated['status'] ?? false;
 
         $order = StoreOrders::where('user_id', $userId)
             ->where('status', false)
             ->first();
 
         if ($order) {
-            $order->update(['items' => $items]);
+            $order->update([
+                'items' => $items,
+                'status' => $status ? true : $order->status
+            ]);
         } else {
             $order = StoreOrders::create([
                 'user_id' => $userId,
                 'items' => $items ?? [],
                 'group_key' => $groupKey,
-                'status' => false
+                'status' => $status
             ]);
         }
 

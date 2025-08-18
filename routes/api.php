@@ -111,4 +111,4 @@ Route::middleware('jwt.auth')->group(function () {
 
 // User
 Route::get('/users', [UserController::class, 'index']);
-Route::get('/refresh', [AuthController::class, 'refresh']);
+Route::post('/refresh', [AuthController::class, 'refresh']);

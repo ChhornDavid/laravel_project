@@ -53,6 +53,9 @@ class UserController extends Controller
 
 
     //create user
+    /**
+     * Create a new user
+     */
     public function store(Request $request)
     {
         try {
@@ -60,7 +63,7 @@ class UserController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:8',
-                'type' => 'required|string|max:10',
+                'type' => 'required|string|in:user,admin,cooker',
             ]);
 
             if ($validator->fails()) {
@@ -76,6 +79,7 @@ class UserController extends Controller
                 'email' => $request->email,
                 'password' => bcrypt($request->password),
                 'type' => $request->type,
+                'email_verified_at' => now(),
             ]);
 
             return response()->json([
@@ -83,8 +87,7 @@ class UserController extends Controller
                 'data' => $user
             ], 201);
         } catch (\Exception $e) {
-            Log::error('Error creating user:', ['error' => $e->getMessage()]);
-
+            Log::error('Error creating user: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create user'
@@ -97,14 +100,14 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         try {
-            // Validate input
             $validator = Validator::make($request->all(), [
                 'name' => 'sometimes|string|max:255',
                 'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
                 'password' => 'sometimes|string|min:8',
+                'type' => 'sometimes|in:user,admin,cooker',
+                'verified' => 'sometimes|boolean',
             ]);
 
-            // Handle validation failure
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
@@ -113,22 +116,23 @@ class UserController extends Controller
                 ], 422);
             }
 
-            // Update password if provided
-            if ($request->has('password')) {
+            if ($request->filled('password')) {
                 $user->password = bcrypt($request->password);
             }
 
-            // Update other fields
-            $user->fill($request->only(['name', 'email']));
-            $user->save(); // Ensure all changes are saved
+            $user->fill($request->only(['name', 'email', 'type']));
 
-            // Return success response
+            if ($request->has('verified')) {
+                $user->email_verified_at = $request->verified ? now() : null;
+            }
+
+            $user->save();
+
             return response()->json([
                 'success' => true,
                 'data' => $user
             ]);
         } catch (\Exception $e) {
-            // Log the error for debugging
             Log::error('Error updating user:', ['error' => $e->getMessage()]);
 
             return response()->json([

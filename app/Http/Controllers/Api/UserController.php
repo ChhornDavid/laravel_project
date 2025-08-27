@@ -103,7 +103,7 @@ class UserController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'sometimes|string|max:255',
                 'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
-                'password' => 'sometimes|string|min:8',
+                'password' => 'nullable|string|min:8',
                 'type' => 'sometimes|in:user,admin,cooker',
                 'verified' => 'sometimes|boolean',
             ]);

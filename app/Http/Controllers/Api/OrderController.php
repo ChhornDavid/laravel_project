@@ -139,6 +139,7 @@ class OrderController extends Controller
         foreach ($request->items as $item) {
             $order->items()->create([
                 'product_id' => $item['product_id'],
+                'product_name' => $item['product_name'],
                 'quantity' => $item['quantity'],
                 'amount' => $item['amount'],
                 'size' => $item['size'] ?? null,

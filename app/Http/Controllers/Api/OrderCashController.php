@@ -25,6 +25,7 @@ class OrderCashController extends Controller
             'payment_type' => 'required|in:cash,credit_card,scan',
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_name' => 'required|string',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.amount' => 'required|numeric',
             'items.*.size' => 'nullable|string',

@@ -25,6 +25,7 @@ return new class extends Migration
             $table->increments('id');
             $table->bigInteger('order_id')->unsigned();
             $table->bigInteger('product_id')->unsigned();
+            $table->string('product_name');
             $table->tinyInteger('quantity');
             $table->string('size')->nullable();
             $table->decimal('amount');

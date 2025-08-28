@@ -64,7 +64,7 @@ class KitchenOrderController extends Controller
 
     private function callRobotToKitchen($order)
     {
-        Http::post('http://127.0.0.1/call', [
+        Http::post('http://172.19.202.96/call', [
             'order_id' => $order->id,
             'action' => 'pickup'
         ]);
@@ -72,7 +72,7 @@ class KitchenOrderController extends Controller
 
     private function sendRobotToTable($order)
     {
-        Http::post('http://127.0.0.1/deliver', [
+        Http::post('http://172.19.202.96/deliver', [
             'order_id' => $order->id,
             'table_number' => $order->table_number,
             'action' => 'delivery'

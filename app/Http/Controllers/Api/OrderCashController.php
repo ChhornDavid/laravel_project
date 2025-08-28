@@ -29,7 +29,6 @@ class OrderCashController extends Controller
             'items.*.amount' => 'required|numeric',
             'items.*.size' => 'nullable|string',
             'paid' => 'required|string|max:255',
-            'group_key' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -44,7 +43,6 @@ class OrderCashController extends Controller
 
         // Check if another session is already handling payment
         $existingOrder = PendingOrder::where('user_id', $userId)
-            ->where('group_key', '!=', $request->group_key)
             ->where('status', 'paid')
             ->first();
 
@@ -57,7 +55,6 @@ class OrderCashController extends Controller
         $order = new PendingOrder();
         $order->user_id = $userId;
         $order->paid = $request->paid;
-        $order->group_key = $request->input('group_key');
         $order->amount = $request->amount;
         $order->payment_type = $request->payment_type;
         $order->items = json_encode($request->items);
@@ -102,7 +99,7 @@ class OrderCashController extends Controller
 
         event(new OrderSentToKitchen($kitchen, $order->user_id));
 
-        $order->status = 'paid';
+        //$order->status = 'paid';
         $order->save();
         event(new StoreOrder($order));
 

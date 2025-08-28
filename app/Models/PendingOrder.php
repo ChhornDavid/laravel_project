@@ -13,6 +13,7 @@ class PendingOrder extends Model
         'amount',
         'payment_type',
         'items',
+        'paid',
         'status',
     ];
 

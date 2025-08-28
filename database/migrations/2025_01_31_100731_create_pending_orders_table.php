@@ -19,7 +19,6 @@ return new class extends Migration
             $table->json('items');
             $table->enum('status', ['pending', 'approved', 'declined'])->default('pending');
             $table->string('paid');
-            $table->string('group_key')->nullable();
             $table->timestamps();
 
             // Foreign key constraint (optional)

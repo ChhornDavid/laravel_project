@@ -43,11 +43,11 @@ Route::middleware('jwt.auth')->group(function () {
     Route::delete('/deleteusers/{user}', [UserController::class, 'destroy']);
 
     //Category
-    Route::put('/updatecategories/{category}', [CategoryController::class, 'update']);
-    Route::get('categories', [CategoryController::class, 'index']);
-    Route::post('addcategories', [CategoryController::class, 'store']);
-    Route::get('showcategories/{category}', [CategoryController::class, 'show']);
-    Route::delete('deletecategory/{category}', [CategoryController::class, 'destroy']);
+    Route::post('/updatecategories/{id}', [CategoryController::class, 'update']);
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::post('/addcategories', [CategoryController::class, 'store']);
+    Route::get('/showcategories/{category}', [CategoryController::class, 'show']);
+    Route::delete('/deletecategory/{category}', [CategoryController::class, 'destroy']);
 
     //Special menu
     Route::get('/special-menus', [SpecialMenuController::class, 'index']);
@@ -59,9 +59,9 @@ Route::middleware('jwt.auth')->group(function () {
     //product
     Route::get('/products', [ProductController::class, 'index']);
     Route::post('/addproducts', [ProductController::class, 'store']);
-    Route::get('showproductds/{products}', [ProductController::class, 'show']);
-    Route::put('updateproducts/{products}', [ProductController::class, 'update']);
-    Route::delete('deleteproduct/{products}', [ProductController::class, 'destroy']);
+    Route::get('/showproductds/{products}', [ProductController::class, 'show']);
+    Route::put('/updateproducts/{products}', [ProductController::class, 'update']);
+    Route::delete('/deleteproduct/{products}', [ProductController::class, 'destroy']);
 
     //Order
     Route::get('/orders', [OrderController::class, 'index']);

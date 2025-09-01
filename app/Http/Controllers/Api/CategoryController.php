@@ -53,30 +53,38 @@ class CategoryController extends Controller
      * Update the specified category in storage.
      */
 
-    public function update(Request $request, Category $category)
+    public function update(Request $request, $id)
     {
         try {
+            // Find category by ID
+            $category = Category::findOrFail($id);
+
+            // Validate request
             $validated = $request->validate([
                 'name' => 'nullable|string|max:255',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
-            if ($request->has('name')) {
+            // Update name if provided
+            if ($request->filled('name')) {
                 $category->name = $validated['name'];
             }
 
+            // Handle image upload
             if ($request->hasFile('image')) {
+                // Delete old image if exists
                 if ($category->image) {
                     $oldImagePath = parse_url($category->image, PHP_URL_PATH);
-                    $oldImagePath = str_replace('/storage/', '', $oldImagePath);
+                    $oldImagePath = str_replace('storage/', '', $oldImagePath);
                     Storage::disk('public')->delete($oldImagePath);
                 }
+
+                // Store new image
                 $imagePath = $request->file('image')->store('categories', 'public');
                 $category->image = asset('storage/' . $imagePath);
-            } else if ($category->image) {
-                $category->image = $category->image;
             }
 
+            // Save updates
             $category->save();
 
             return response()->json([
@@ -93,7 +101,6 @@ class CategoryController extends Controller
             ], 500);
         }
     }
-
 
     /**
      * Remove the specified category from storage.

@@ -15,9 +15,10 @@ class Product extends Model
         'name',
         'image',
         'description',
-        'rating',
-        'price',
-        'size',
+        'prices'
+    ];
+    protected $casts = [
+        'prices' => 'array',
     ];
     protected $table = 'products';
 

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('payment_type');
             $table->json('items');
             $table->enum('status', ['pending', 'approved', 'declined'])->default('pending');
+            $table->string('order_number')->nullable();
             $table->string('paid');
             $table->timestamps();
 

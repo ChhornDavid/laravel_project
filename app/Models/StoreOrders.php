@@ -13,12 +13,14 @@ class StoreOrders extends Model
     protected $fillable = [
         'user_id',
         'items',
-        'group_key',
-        'status'
+        'order_number',
+        'status',
+        'order_paid'
     ];
 
     protected $casts = [
         'items' => 'array',
-        'status' => 'boolean'
+        'status' => 'boolean',
+        'order_paid' => 'boolean',
     ];
 }

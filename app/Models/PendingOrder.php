@@ -15,6 +15,7 @@ class PendingOrder extends Model
         'items',
         'paid',
         'status',
+        'order_number'
     ];
 
     protected $casts = [

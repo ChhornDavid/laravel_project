@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\KitchenOrderController;
 use App\Http\Controllers\Api\OrderCashController;
 use App\Http\Controllers\Api\OrderController;
@@ -72,6 +73,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/getitem', [OrderController::class, 'LastOrder']);
     Route::post('/order/add-items', [OrderController::class, 'addItems']);
     Route::get('/order/draft/{userId}', [OrderController::class, 'getDraftOrder']);
+    Route::get('/popular', [OrderController::class, 'popularOrder']);
 
     //Payment by credit card
     Route::post('/stripe', [StripeController::class, 'stripePost']);
@@ -100,6 +102,17 @@ Route::middleware('jwt.auth')->group(function () {
     //translate
     Route::post('/switch-language', [TranslationController::class, 'translate']);
 
+    //Dashboard
+    Route::get('/totalRevenue', [DashboardController::class, 'totalRevenue']);
+    Route::get('/totalLastMonth', [DashboardController::class, 'totalLastMonth']);
+    Route::get('/thisMonth', [DashboardController::class, 'thisMonth']);
+    Route::get('/customers', [DashboardController::class, 'Customer']);
+    Route::get('/revunueoverview', [DashboardController::class, 'RevenueOverview']);
+    Route::get('/currentpayment', [DashboardController::class, 'getPaidPayments']);
+
+    //Add for new order
+    Route::post('/add/addorder', [OrderController::class, 'addNewOrder']);
+    
     Route::get('/user', function (Request $request) {
         return $request->user();
     });

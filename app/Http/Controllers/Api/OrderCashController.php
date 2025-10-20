@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\DeclineApprove;
 use App\Events\OrderApprovedCash;
 use App\Events\OrderCreated;
 use App\Events\OrderSentToKitchen;
@@ -30,6 +31,7 @@ class OrderCashController extends Controller
             'items.*.amount' => 'required|numeric',
             'items.*.size' => 'nullable|string',
             'paid' => 'required|string|max:255',
+            'order_number'=> 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -59,6 +61,7 @@ class OrderCashController extends Controller
         $order->amount = $request->amount;
         $order->payment_type = $request->payment_type;
         $order->items = json_encode($request->items);
+        $order->order_number = $request->order_number;
         $order->save();
 
         event(new OrderApprovedCash($order, $order->user_id));
@@ -81,6 +84,7 @@ class OrderCashController extends Controller
             'user_id' => $pendingOrder->user_id,
             'amount' => $pendingOrder->amount,
             'payment_type' => $pendingOrder->payment_type,
+            'order_number' =>$pendingOrder->order_number,
         ]);
 
         // Insert order items
@@ -95,6 +99,7 @@ class OrderCashController extends Controller
             'order_id' => $order->id,
             'user_id' => $order->user_id,
             'items' => $items,
+            'order_number' => $order->order_number,
             'status' => 'pending',
         ]);
 
@@ -118,7 +123,7 @@ class OrderCashController extends Controller
         $pendingOrder->save();
 
         Log::info("Order Declined", ['orderId' => $id]);
-        broadcast(new OrderApprovedCash(['orderId' => $id], []))->toOthers();
+        broadcast(new DeclineApprove($pendingOrder, $pendingOrder->user_id))->toOthers();
         return response()->json(['message' => 'Order declined.'], 200);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\AddNewOrder;
 use App\Http\Controllers\Controller;
 use App\Models\KitchenOrder;
 use App\Models\Order;
@@ -10,68 +11,132 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Events\CreditCardToKitchen;
 use App\Events\OrderCreated;
+use App\Models\OrderItem;
 use App\Models\StoreOrders;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
+    /**
+     * Display of popular order
+     */
+    public function popularOrder()
+    {
+
+        $pupular = OrderItem::select(
+            'products.id as product_id',
+            'products.name as product_name',
+            DB::raw('COUNT(order_items.id) as total')
+        )
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total')
+            ->get();
+
+        return response()->json([
+            'data' => 'success',
+            'popular' => $pupular
+        ]);
+    }
+
+    /**
+     * Summary of AddNewOrder
+     */
+    public function addNewOrder(Request $request)
+    {
+        $order = $request->input('order');
+        $userId = $request->input('user_id');
+        broadcast(new AddNewOrder($order, $userId))->toOthers();
+        return response()->json(['message' => 'Order broadcasted']);
+    }
+
+    /**
+     * Summary of getDraftOrder
+     */
     public function getDraftOrder(Request $request, $userId)
     {
-        $order = StoreOrders::where('user_id', $userId)
+        $orders = StoreOrders::where('user_id', $userId)
             ->where('status', false)
-            ->latest()
-            ->first();
+            ->get();
 
-        if ($order) {
+        if ($orders->isNotEmpty()) {
             return response()->json([
-                'message' => 'Draft order found',
-                'items' => $order->items,
-            ]);
+                'message' => 'Draft orders found',
+                'orders' => $orders
+            ], 200);
         }
 
         return response()->json([
-            'message' => 'No draft order',
-            'items' => []
-        ]);
+            'message' => 'No draft orders found',
+            'orders' => [],
+        ], 200);
     }
 
     public function addItems(Request $request)
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'items' => 'required|array',
-            'group_key' => 'required',
-            'status' => 'nullable|boolean'
+            'items' => 'nullable|array',
+            'order_number' => 'required|string',
+            'status' => 'nullable|boolean',
+            'order_paid' => 'nullable|boolean',
         ]);
 
         $userId = $validated['user_id'];
         $items = $validated['items'] ?? [];
-        $groupKey = $validated['group_key'];
+        $orderNumber = $validated['order_number'];
         $status = $validated['status'] ?? false;
+        $orderPaid = $validated['order_paid'] ?? false;
 
-        $order = StoreOrders::where('user_id', $userId)
-            ->where('status', false)
-            ->first();
+        try {
+            DB::beginTransaction();
 
-        if ($order) {
-            $order->update([
-                'items' => $items,
-                'status' => $status ? true : $order->status
-            ]);
-        } else {
-            $order = StoreOrders::create([
-                'user_id' => $userId,
-                'items' => $items ?? [],
-                'group_key' => $groupKey,
-                'status' => $status
-            ]);
+            $order = StoreOrders::where('user_id', $userId)
+                ->where('order_number', $orderNumber)
+                ->first();
+
+            if ($order) {
+                // ✅ Always update the actual values from request
+                $order->update([
+                    'items' => $items,
+                    'status' => $status,
+                    'order_paid' => $orderPaid,
+                ]);
+
+                Log::info("✅ Updated order {$orderNumber} for user {$userId} | order_paid={$orderPaid}");
+            } else {
+                // Create new order
+                $order = StoreOrders::create([
+                    'user_id' => $userId,
+                    'order_number' => $orderNumber,
+                    'items' => $items,
+                    'status' => $status,
+                    'order_paid' => $orderPaid,
+                ]);
+
+                Log::info("🆕 Created new order {$orderNumber} for user {$userId} | order_paid={$orderPaid}");
+            }
+
+            DB::commit();
+
+            // Broadcast updates
+            broadcast(new OrderCreated($userId, $items, $orderNumber))->toOthers();
+            broadcast(new AddNewOrder($order, $userId))->toOthers();
+
+            return response()->json([
+                'message' => 'Order synced successfully',
+                'order' => $order,
+            ], 200);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('❌ addItems error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Failed to sync order',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        broadcast(new OrderCreated($userId, $items, $groupKey))->toOthers();
-
-        return response()->json([
-            'message' => 'Order saved successfully',
-            'order' => $order
-        ]);
     }
 
     /**

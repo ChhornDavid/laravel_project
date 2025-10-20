@@ -103,7 +103,7 @@ class StripeController extends Controller
 
             return response()->json([
                 'payment_url' => $session->url,
-                'payment_id' => $session->id,  // Pass the payment ID
+                'payment_id' => $session->id,
             ]);
         } catch (\Exception $e) {
             Log::error("Error creating payment link", ['message' => $e->getMessage()]);
@@ -146,7 +146,6 @@ class StripeController extends Controller
 
                     if ($session->payment_status === 'paid') {
                         $orderId = $session->client_reference_id;
-                        // Handle successful payment, update order status
                     }
                     break;
                 default:

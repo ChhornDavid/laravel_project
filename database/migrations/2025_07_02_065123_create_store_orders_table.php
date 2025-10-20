@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->json('items')->nullable();
+            $table->boolean('order_paid')->default(false);
             $table->boolean('status')->default(false); 
-            $table->string('group_key')->nullable()->index();
+            $table->string('order_number')->nullable()->index();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

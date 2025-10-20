@@ -4,45 +4,34 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class OrderCreated implements ShouldBroadcast
+class DeclineApprove implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    public $order;
     public $userId;
-    public $items;
-    public $orderNumber;
-
     /**
      * Create a new event instance.
      */
-    public function __construct($userId, $items, $orderNumber)
+    public function __construct($order, $userId)
     {
+        $this->order = $order;
         $this->userId = $userId;
-        $this->items = $items;
-        $this->orderNumber = $orderNumber;
     }
 
     /**
      * Get the channels the event should broadcast on.
+     *
+     * @return array<int, \Illuminate\Broadcasting\Channel>
      */
     public function broadcastOn()
     {
-        return new Channel("ordersItem");
-    }
-
-    /**
-     * Customize broadcast payload.
-     */
-    public function broadcastWith()
-    {
-        return [
-            'userId' => $this->userId,
-            'orderNumber' => $this->orderNumber,
-            'items' => $this->items,
-        ];
+       return new Channel('order-decline');
     }
 }

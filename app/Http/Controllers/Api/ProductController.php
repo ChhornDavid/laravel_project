@@ -35,9 +35,8 @@ class ProductController extends Controller
                 'id_category' => 'nullable|exists:categories,id',
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'rating' => 'nullable|numeric|min:0|max:5',
-                'price' => 'required|numeric|min:0',
-                'size' => 'nullable|string',
+                'prices.*.size' => 'required|string',
+                'prices.*.price' => 'required|numeric',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             ]);
 
@@ -88,7 +87,8 @@ class ProductController extends Controller
                 'name' => 'nullable|string|max:255',
                 'description' => 'nullable|string',
                 'rating' => 'nullable|numeric|min:0|max:5',
-                'price' => 'nullable|numeric|min:0',
+                'prices.*.size' => 'required|string',
+                'prices.*.price' => 'required|numeric',
                 'size' => 'nullable|string',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             ]);
@@ -124,14 +124,14 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         // Delete image if exists
-         if ($product->image) {
-              $oldImagePath = str_replace(url('storage/'), '', $product->image);
-             Storage::disk('public')->delete($oldImagePath);
-         }
+        if ($product->image) {
+            $oldImagePath = str_replace(url('storage/'), '', $product->image);
+            Storage::disk('public')->delete($oldImagePath);
+        }
 
 
-       $product->delete();
-        
-         return response()->json(['message' => 'Product deleted successfully'], 200);
+        $product->delete();
+
+        return response()->json(['message' => 'Product deleted successfully'], 200);
     }
 }

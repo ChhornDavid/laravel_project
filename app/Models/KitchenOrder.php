@@ -9,7 +9,7 @@ class KitchenOrder extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['order_id', 'user_id', 'items', 'status'];
+    protected $fillable = ['order_id', 'user_id', 'items', 'order_number', 'status'];
 
     protected $casts = [
         'items' => 'array',

@@ -18,9 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('image')->nullable();
             $table->text('description')->nullable();
-            $table->float('rating')->default(0);
-            $table->decimal('price', 8, 2);
-            $table->string('size')->nullable();
+            $table->json('prices');
             $table->timestamps();
         });
     }

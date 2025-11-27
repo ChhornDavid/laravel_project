@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Events\EventForRobot;
 use App\Http\Controllers\Controller;
 use App\Models\KitchenOrder;
+use App\Models\StoreOrders;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -46,6 +47,25 @@ class KitchenOrderController extends Controller
 
             $order->update(['status' => $request->status]);
 
+            // 🔥 MAP Kitchen status → StoreOrders.process_status
+            $processStatus = null;
+
+            if ($request->status === 'accepted') {
+                $processStatus = 'Cooking';
+            } elseif ($request->status === 'preparing') {
+                $processStatus = 'Preparing';
+            } elseif ($request->status === 'completed') {
+                $processStatus = 'Ready';
+            }
+
+            // 🔍 IMPORTANT: Update based on order_number from KitchenOrder
+            if ($processStatus) {
+                StoreOrders::where('order_number', $order->order_number)
+                    ->update([
+                        'process_status' => $processStatus,
+                    ]);
+            }
+
             // Send real-time event
             event(new EventForRobot($order));
 
@@ -56,9 +76,15 @@ class KitchenOrderController extends Controller
                 $this->sendRobotToTable($order);
             }
 
-            return response()->json(['message' => 'Status updated successfully', 'order' => $order], 200);
+            return response()->json([
+                'message' => 'Status updated successfully',
+                'order' => $order
+            ], 200);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Error updating status', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Error updating status',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 

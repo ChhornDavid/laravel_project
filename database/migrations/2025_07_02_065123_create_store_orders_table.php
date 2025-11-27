@@ -16,8 +16,16 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->json('items')->nullable();
             $table->boolean('order_paid')->default(false);
-            $table->boolean('status')->default(false); 
+            $table->boolean('status')->default(false);
             $table->string('order_number')->nullable()->index();
+            $table->enum('process_status', [
+                'Free',
+                'Cashier Approve',
+                'At Kitchen',
+                'Cooking',
+                'Preparing',
+                'Ready'
+            ])->default('Free');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

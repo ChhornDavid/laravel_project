@@ -16,6 +16,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Models\StoreOrders;
 
 class OrderCashController extends Controller
 {
@@ -31,7 +32,8 @@ class OrderCashController extends Controller
             'items.*.amount' => 'required|numeric',
             'items.*.size' => 'nullable|string',
             'paid' => 'required|string|max:255',
-            'order_number'=> 'required|string',
+            'order_number' => 'required|string',
+            'process_status' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -56,13 +58,29 @@ class OrderCashController extends Controller
         }
 
         $order = new PendingOrder();
+
         $order->user_id = $userId;
         $order->paid = $request->paid;
         $order->amount = $request->amount;
         $order->payment_type = $request->payment_type;
         $order->items = json_encode($request->items);
         $order->order_number = $request->order_number;
+
+        // Save pending order first
         $order->save();
+
+        // Determine status based on payment type
+        $processStatus = 'Cashier Approve'; // default for cash
+
+        if (in_array($request->payment_type, ['credit_card', 'scan'])) {
+            $processStatus = 'At Kitchen';
+        }
+
+        // Update store order process status
+        StoreOrders::where('order_number', $request->order_number)
+            ->update([
+                'process_status' => $processStatus,
+            ]);
 
         event(new OrderApprovedCash($order, $order->user_id));
         event(new PaidOrder($order->user_id, $order->paid));
@@ -84,7 +102,7 @@ class OrderCashController extends Controller
             'user_id' => $pendingOrder->user_id,
             'amount' => $pendingOrder->amount,
             'payment_type' => $pendingOrder->payment_type,
-            'order_number' =>$pendingOrder->order_number,
+            'order_number' => $pendingOrder->order_number,
         ]);
 
         // Insert order items
@@ -102,6 +120,11 @@ class OrderCashController extends Controller
             'order_number' => $order->order_number,
             'status' => 'pending',
         ]);
+        StoreOrders::where('order_number', $pendingOrder->order_number)
+            ->update([
+                'process_status' => 'At Kitchen',
+            ]);
+
 
         event(new OrderSentToKitchen($kitchen, $order->user_id));
 
@@ -121,6 +144,10 @@ class OrderCashController extends Controller
 
         $pendingOrder->status = 'declined';
         $pendingOrder->save();
+        StoreOrders::where('order_number', $pendingOrder->order_number)
+            ->update([
+                'process_status' => 'Free',
+            ]);
 
         Log::info("Order Declined", ['orderId' => $id]);
         broadcast(new DeclineApprove($pendingOrder, $pendingOrder->user_id))->toOthers();

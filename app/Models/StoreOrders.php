@@ -15,7 +15,8 @@ class StoreOrders extends Model
         'items',
         'order_number',
         'status',
-        'order_paid'
+        'order_paid',
+        'process_status'
     ];
 
     protected $casts = [

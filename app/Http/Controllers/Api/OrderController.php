@@ -54,6 +54,22 @@ class OrderController extends Controller
     /**
      * Summary of getDraftOrder
      */
+    public function resetProcessStatus(Request $request)
+    {
+        $userId = $request->user_id;
+
+        if (!$userId) {
+            return response()->json(['message' => 'user_id missing'], 400);
+        }
+
+        // Reset all orders for this user
+        StoreOrders::where('user_id', $userId)
+            ->update(['process_status' => 'Free']);
+
+        return response()->json(['message' => 'Process status reset'], 200);
+    }
+
+
     public function getDraftOrder(Request $request, $userId)
     {
         $orders = StoreOrders::where('user_id', $userId)

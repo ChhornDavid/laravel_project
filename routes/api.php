@@ -74,6 +74,9 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/order/add-items', [OrderController::class, 'addItems']);
     Route::get('/order/draft/{userId}', [OrderController::class, 'getDraftOrder']);
     Route::get('/popular', [OrderController::class, 'popularOrder']);
+    Route::post('/order/reset-process-status', [OrderController::class, 'resetProcessStatus']);
+
+
 
     //Payment by credit card
     Route::post('/stripe', [StripeController::class, 'stripePost']);
@@ -107,12 +110,14 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/totalLastMonth', [DashboardController::class, 'totalLastMonth']);
     Route::get('/thisMonth', [DashboardController::class, 'thisMonth']);
     Route::get('/customers', [DashboardController::class, 'Customer']);
-    Route::get('/revunueoverview', [DashboardController::class, 'RevenueOverview']);
+    Route::get('/revenueoverview', [DashboardController::class, 'RevenueOverview']);
     Route::get('/currentpayment', [DashboardController::class, 'getPaidPayments']);
+    Route::get('/last4Months', [DashboardController::class, 'last4months']);
+    Route::get('/annual-target', [DashboardController::class, 'annualTarget']);
 
     //Add for new order
     Route::post('/add/addorder', [OrderController::class, 'addNewOrder']);
-    
+
     Route::get('/user', function (Request $request) {
         return $request->user();
     });

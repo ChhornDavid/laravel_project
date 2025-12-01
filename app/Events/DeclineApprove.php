@@ -15,13 +15,15 @@ class DeclineApprove implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $order;
+    public $orderNumber;
     public $userId;
     /**
      * Create a new event instance.
      */
-    public function __construct($order, $userId)
+    public function __construct($order, $userId, $orderNumber)
     {
         $this->order = $order;
+        $this->orderNumber = $orderNumber;
         $this->userId = $userId;
     }
 

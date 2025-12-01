@@ -135,22 +135,34 @@ class OrderCashController extends Controller
         return response()->json(['message' => 'Order approved and sent to kitchen!', 'order' => $order], 200);
     }
 
-    public function declineOrder($id)
+    public function declineOrder(Request $request, $id)
     {
-        $pendingOrder = $this->findPendingOrder($id);
+        $orderNumber = $request->order_number;
+
+        // Pending order in pending_orders
+        $pendingOrder = PendingOrder::where('id', $id)
+            ->where('order_number', $orderNumber)
+            ->where('status', 'pending')
+            ->first();
+
         if (!$pendingOrder) {
-            return response()->json(['message' => 'Pending order not found or already processed.'], 404);
+            return response()->json(['message' => 'Pending order not found or order_number mismatch.'], 404);
         }
 
+        // Update pending_orders status
         $pendingOrder->status = 'declined';
         $pendingOrder->save();
-        StoreOrders::where('order_number', $pendingOrder->order_number)
-            ->update([
-                'process_status' => 'Free',
-            ]);
+
+        // Update store_orders (the real source of order_paid)
+        StoreOrders::where('order_number', $orderNumber)->update([
+            'process_status' => 'Free',
+            'order_paid'     => false,   // ✅ FIX — update here
+        ]);
 
         Log::info("Order Declined", ['orderId' => $id]);
-        broadcast(new DeclineApprove($pendingOrder, $pendingOrder->user_id))->toOthers();
+
+        broadcast(new DeclineApprove($pendingOrder, $pendingOrder->user_id,$pendingOrder->order_number))->toOthers();
+
         return response()->json(['message' => 'Order declined.'], 200);
     }
 

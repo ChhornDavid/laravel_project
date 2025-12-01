@@ -11,6 +11,64 @@ use Stripe\Stripe;
 
 class DashboardController extends Controller
 {
+    public function annualTarget()
+    {
+        $currentYear = now()->year;
+        $lastYear = $currentYear - 1;
+
+        // Values
+        $currentRevenue = Order::whereYear('created_at', $currentYear)->sum('amount');
+        $lastYearRevenue = Order::whereYear('created_at', $lastYear)->sum('amount');
+
+        // Target (you can change it)
+        $annualTarget = 20000;
+
+        // Calculate percentage
+        $percentage = $annualTarget > 0
+            ? round(($currentRevenue / $annualTarget) * 100, 2)
+            : 0;
+
+        // Calculate growth vs last year
+        if ($lastYearRevenue > 0) {
+            $growth = round((($currentRevenue - $lastYearRevenue) / $lastYearRevenue) * 100, 2);
+        } else {
+            $growth = 0;
+        }
+
+        return response()->json([
+            "success" => true,
+            "data" => [
+                "target_goal"      => $annualTarget,
+                "current_revenue"  => $currentRevenue,
+                "percentage"       => $percentage,
+                "growth"           => $growth
+            ]
+        ]);
+    }
+
+    public function last4months()
+    {
+        // Get last 4 months including current month
+        $months = collect(range(0, 3))->map(function ($i) {
+            return now()->subMonths($i);
+        })->reverse();
+
+        $data = $months->map(function ($date) {
+            return [
+                'month'  => $date->format('M'),
+                'amount' => Order::whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->sum('amount'),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $data->values()->toArray(),  // ← FIXED
+        ], 200);
+    }
+
+
     public function TotalRevenue()
     {
         $totalRevenue = Order::sum('amount');

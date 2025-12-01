@@ -1,4 +1,9 @@
-# TODO: Modify declineOrder to use order_number
+# TODO: Fix Dockerfile for Laravel Project
 
-- [ ] Update routes/api.php: Change route parameter from {id} to {order_number}
-- [ ] Update app/Http/Controllers/Api/OrderCashController.php: Modify declineOrder method to accept $order_number and find by order_number
+## Steps to Complete
+- [ ] Correct the supervisor config file copy from websockets.ini to websockets.conf in Dockerfile
+- [ ] Add composer install command after copying application files
+- [ ] Add npm install and npm run build commands for frontend assets
+- [ ] Set proper permissions for Laravel storage directories
+- [ ] Handle .env file (copy from .env.example if exists)
+- [ ] Test Docker build and verify application runs correctly

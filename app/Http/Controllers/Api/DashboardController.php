@@ -8,9 +8,48 @@ use Illuminate\Http\Request;
 use Stripe\PaymentIntent;
 use Stripe\PaymentMethod;
 use Stripe\Stripe;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\RevenueExport;
 
 class DashboardController extends Controller
 {
+    public function exportRevenue($period)
+    {
+        $days = match ($period) {
+            '7days'  => 7,
+            '30days' => 30,
+            '90days' => 90,
+            default  => 7
+        };
+
+        return Excel::download(new RevenueExport($days), "revenue_{$period}.xlsx");
+    }
+    public function revenueByPeriod($period)
+    {
+        // Convert period to number of days
+        $days = match ($period) {
+            '7days'  => 7,
+            '30days' => 30,
+            '90days' => 90,
+            default  => 7
+        };
+
+        // Date range
+        $startDate = now()->subDays($days);
+
+        // Sum revenue in range
+        $total = Order::where('created_at', '>=', $startDate)->sum('amount');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'period' => $period,
+                'value' => number_format($total, 2),
+                'label' => "Revenue for last $days days"
+            ]
+        ]);
+    }
+
     public function annualTarget()
     {
         $currentYear = now()->year;
@@ -73,8 +112,13 @@ class DashboardController extends Controller
     {
         $totalRevenue = Order::sum('amount');
 
-        $currentMonth = Order::whereMonth('created_at', now()->month)->sum('amount');
-        $lastMonth = Order::whereMonth('created_at', now()->subMonth()->month)->sum('amount');
+        $currentMonth = Order::whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->sum('amount');
+
+        $lastMonth = Order::whereYear('created_at', now()->subMonth()->year)
+            ->whereMonth('created_at', now()->subMonth()->month)
+            ->sum('amount');
 
         $change = $lastMonth > 0
             ? number_format((($currentMonth - $lastMonth) / $lastMonth) * 100, 2)

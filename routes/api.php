@@ -114,6 +114,10 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('/currentpayment', [DashboardController::class, 'getPaidPayments']);
     Route::get('/last4Months', [DashboardController::class, 'last4months']);
     Route::get('/annual-target', [DashboardController::class, 'annualTarget']);
+    Route::get('/revenue/{period}', [DashboardController::class, 'revenueByPeriod']);
+    Route::get('/export/revenue/{period}', [DashboardController::class, 'exportRevenue']);
+
+
 
     //Add for new order
     Route::post('/add/addorder', [OrderController::class, 'addNewOrder']);

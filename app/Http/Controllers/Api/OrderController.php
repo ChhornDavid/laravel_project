@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\AddNewOrder;
+use App\Events\OrderPaid;
 use App\Http\Controllers\Controller;
 use App\Models\KitchenOrder;
 use App\Models\Order;
@@ -191,6 +192,7 @@ class OrderController extends Controller
         $validator = Validator::make($request->all(), [
             'amount' => 'required|numeric',
             'payment_type' => 'required|in:cash,credit_card,scan',
+            'order_number' => 'required|string',
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_name' => 'required|exists:products,name',
@@ -214,7 +216,20 @@ class OrderController extends Controller
         $order->user_id = $user->id;
         $order->amount = $request->amount;
         $order->payment_type = $request->payment_type;
+        $order->order_number = $request->order_number;
         $order->save();
+
+        $processStatus = 'Cashier Approve';
+
+        if (in_array($request->payment_type, ['credit_card', 'scan'])) {
+            $processStatus = 'At Kitchen';
+        }
+
+        // Update store order process status
+        StoreOrders::where('order_number', $request->order_number)
+            ->update([
+                'process_status' => $processStatus,
+            ]);
 
         // Save order items
         foreach ($request->items as $item) {
@@ -232,10 +247,12 @@ class OrderController extends Controller
             'order_id' => $order->id,
             'user_id' => $order->user_id,
             'items' => $request->items,
+            'order_number' => $request->order_number,
             'status' => 'pending',
         ]);
 
         event(new CreditCardToKitchen($kichen, $order->user_id));
+        event(new OrderPaid($order->order_number, $order->user_id));
 
         // Return the response
         return response()->json([
